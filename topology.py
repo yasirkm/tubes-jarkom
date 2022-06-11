@@ -1,3 +1,9 @@
+'''
+    Topology untuk tugas besar mata kuliah jaringan komputer
+    -Yasir Khairul Malik (1301204395)
+'''
+
+
 from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import CPULimitedHost
@@ -158,9 +164,6 @@ class Tubes(Topo):  # CLO1
 
         for (node1, node2), param in zip(link_pairs,link_params):
             self.addLink(node1, node2, **param)
-
-    def ping_local_subnet(self):
-        self['A'].cmd('echo hai')
 
 def ping_local_subnet(net): # CLO1
     '''
