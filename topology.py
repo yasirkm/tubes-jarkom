@@ -2,14 +2,50 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import CPULimitedHost
 from mininet.link import TCLink
+from mininet.cli import CLI
+from mininet.log import setLogLevel
 
-class Tubes(Topo):
+class Tubes(Topo):  # CLO1
+    '''
+        Basic topology for tubes
+    '''
     def build(self):
-        host_param = {'cls':CPULimitedHost}
-        router_param = {'cls':CPULimitedHost}
 
         hosts = ('A', 'B')
+        host_params= (
+            {
+                'ip':'192.168.0.10/24',
+                'defaultRoute':'via 192.168.0.1',
+                'cls':CPULimitedHost
+            },
+            {
+                'ip':'192.168.2.20/24',
+                'defaultRoute':'via 192.168.2.1',
+                'cls':CPULimitedHost
+            }
+        )
+
+
         routers = ('R1', 'R2', 'R3', 'R4')
+        router_params = (
+            {
+                'ip':'192.168.0.1/24',
+                'cls':CPULimitedHost
+            },
+            {
+                'ip':'192.168.1.1/24',
+                'cls':CPULimitedHost
+            },
+            {
+                'ip':'192.168.2.1/24',
+                'cls':CPULimitedHost
+            },
+            {
+                'ip':'192.168.3.1/24',
+                'cls':CPULimitedHost
+            }
+        )
+
 
         link_pairs = (
             ('A','R1'),
@@ -21,15 +57,16 @@ class Tubes(Topo):
             ('R1','R3'),
             ('R2','R4')
         )
-        link_params = {
+        link_params = (
             {
                 # Parameters for ('A','R1')
-                'params1':{
-                    'ip':'192.168.0.10/24'
-                },
-                'params2':{
-                    'ip':'192.168.0.1/24'
-                },
+                # 'params1':{
+                #     'ip':'192.168.0.10/24',
+                #     'defaultRoute':'192.168.0o.1'
+                # },
+                # 'params2':{
+                #     'ip':'192.168.0.1/24'
+                # },
                 'cls':TCLink,
                 'bw':1
             },
@@ -46,12 +83,13 @@ class Tubes(Topo):
             },
                 # Parameters for ('B','R3')
             {
-                'params1':{
-                    'ip':'192.168.2.20/24'
-                },
-                'params2':{
-                    'ip':'192.168.2.1/24'
-                },
+                # 'params1':{
+                #     'ip':'192.168.2.20/24',
+                #     'defaultRoute':'192.168.2.1'
+                # },
+                # 'params2':{
+                #     'ip':'192.168.2.1/24'
+                # },
                 'cls':TCLink,
                 'bw':1
             },
@@ -110,18 +148,41 @@ class Tubes(Topo):
                 'cls':TCLink,
                 'bw':0.5
             }
-        }
+        )
 
-        for host in hosts:
+        for host, host_param in zip(hosts,host_params):
             self.addHost(host, **host_param)
         
-        for router in routers:
+        for router, router_param in zip(routers,router_params):
             self.addNode(router, **router_param)
 
-        for node1, node2, param in zip(link_pairs,link_params):
+        for (node1, node2), param in zip(link_pairs,link_params):
             self.addLink(node1, node2, **param)
 
-def main():
-    net = Mininet(Tubes)
-    net.run()
+    def ping_local_subnet(self):
+        self['A'].cmd('echo hai')
 
+def ping_local_subnet(net): # CLO1
+    '''
+        Ping all subnet in tubes' topology locally
+    '''
+    A, B, R1, R2, R3, R4 = net.get('A', 'B', 'R1', 'R2', 'R3', 'R4')
+    A.cmdPrint('ping -c 4 192.168.0.1')     # A to R!
+    A.cmdPrint('ping -c 4 192.168.1.1')     # A to R2
+    B.cmdPrint('ping -c 4 192.168.2.1')     # B to R3
+    B.cmdPrint('ping -c 4 192.168.3.1')     # B to R4
+    R1.cmdPrint('ping -c 4 192.168.255.2')  # R1 to R3
+    R1.cmdPrint('ping -c 4 192.168.255.6')  # R1 to R4
+    R2.cmdPrint('ping -c 4 192.168.255.10') # R2 to R3
+    R2.cmdPrint('ping -c 4 192.168.255.14') # R2 to R4
+
+def main():
+    setLogLevel('info')
+    net = Mininet(Tubes())
+    net.start()
+    ping_local_subnet(net)
+    CLI(net)
+    net.stop()
+
+if __name__ == '__main__':
+    main()
