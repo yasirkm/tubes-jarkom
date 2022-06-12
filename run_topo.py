@@ -28,7 +28,7 @@ def enable_routing(net):
     r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
 
     r1.cmd('sysctl net.ipv4.ip_forward=1')
-    r1.cmd('ip route add 0.0.0.0/0 via 192.168.255.2 dev R1-eth2')
+    r1.cmd('ip route add 0.0.0.0/0 via 192.168.255.2')
     # r1.cmd('ip route add 192.168.1.0/24 via 192.168.255.6 dev R1-eth1')
     # r1.cmd('ip route add 192.168.255.8/30 via 192.168.255.6 dev R1-eth1')
     # r1.cmd('ip route add 192.168.255.12/30 via 192.168.255.6 dev R1-eth1')
@@ -36,8 +36,8 @@ def enable_routing(net):
     # r1.cmd('ip route add 192.168.3.0/24 via 192.168.255.6 dev R1-eth1')
 
     r2.cmd('sysctl net.ipv4.ip_forward=1')
-    r2.cmd('ip route add 0.0.0.0/0 via 192.168.255.10 dev R2-eth1')
-    r2.cmd('ip route add 192.168.3.0/24 via 192.168.255.14 dev R2-eth2')
+    r2.cmd('ip route add 0.0.0.0/0 via 192.168.255.10')
+    r2.cmd('ip route add 192.168.3.0/24 via 192.168.255.14')
     # r2.cmd('ip route add 192.168.0.0/24 via 192.168.255.10 dev R2-eth1')
     # r2.cmd('ip route add 192.168.255.0/30 via 192.168.255.10 dev R2-eth1')
     # r2.cmd('ip route add 192.168.255.4/30 via 192.168.255.10 dev R2-eth1')
@@ -46,11 +46,11 @@ def enable_routing(net):
 
     r3.cmd('sysctl net.ipv4.ip_forward=1')
     # r3.cmd('ip route add 0.0.0.0/0 via 192.168.255.1 dev R3-eth2')
-    r3.cmd('ip route add 192.168.0.0/24 via 192.168.255.1 dev R3-eth2')
-    r3.cmd('ip route add 192.168.1.0/24 via 192.168.255.9 dev R3-eth1')
-    r3.cmd('ip route add 192.168.255.4/30 via 192.168.255.1 dev R3-eth2')
-    r3.cmd('ip route add 192.168.255.12/30 via 192.168.255.9 dev R3-eth1')
-    r3.cmd('ip route add 192.168.3.0/24 via 192.168.255.9 dev R3-eth1')
+    r3.cmd('ip route add 192.168.0.0/24 via 192.168.255.1')
+    r3.cmd('ip route add 192.168.1.0/24 via 192.168.255.9')
+    r3.cmd('ip route add 192.168.255.4/30 via 192.168.255.1')
+    r3.cmd('ip route add 192.168.255.12/30 via 192.168.255.9')
+    r3.cmd('ip route add 192.168.3.0/24 via 192.168.255.9')
 
     # r3.cmd('ip route add 192.168.0.0/24 via 192.168.255.1 dev R3-eth2')
     # r3.cmd('ip route add 192.168.1.0/24 via 192.168.255.1 dev R3-eth2')
@@ -59,7 +59,7 @@ def enable_routing(net):
     # r3.cmd('ip route add 192.168.3.0/24 via 192.168.255.1 dev R3-eth2')
 
     r4.cmd('sysctl net.ipv4.ip_forward=1')
-    r4.cmd('ip route add 0.0.0.0/0 via 192.168.255.13 dev R4-eth2')
+    r4.cmd('ip route add 0.0.0.0/0 via 192.168.255.13')
     # r4.cmd('ip route add 192.168.0.0/24 via 192.168.255.13 dev R4-eth2')
     # r4.cmd('ip route add 192.168.1.0/24 via 192.168.255.13 dev R4-eth2')
     # r4.cmd('ip route add 192.168.255.0/30 via 192.168.255.13 dev R4-eth2')
