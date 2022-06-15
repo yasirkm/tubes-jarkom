@@ -3,6 +3,8 @@
     - Yasir Khairul Malik (1301204395)
 '''
 
+from time import sleep
+
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.log import setLogLevel
@@ -10,7 +12,7 @@ from mininet.log import setLogLevel
 from topology import Tubes
 
 
-def ping_local_subnet(net): # CLO1
+def ping_local_subnet(net): # CLO 1
     '''
         Ping all subnet in tubes' topology locally
     '''
@@ -24,7 +26,7 @@ def ping_local_subnet(net): # CLO1
     r2.cmdPrint('ping -c 4 192.168.255.10') # R2 to R3
     r2.cmdPrint('ping -c 4 192.168.255.14') # R2 to R4
 
-def enable_routing(net):
+def enable_routing(net):    # CLO 2
     r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
 
     r1.cmd('sysctl net.ipv4.ip_forward=1')
@@ -68,6 +70,13 @@ def enable_routing(net):
 
     net.pingAll()
 
+def tcp_traffic(net):   # CLO 3
+    a, b = net.get('A', 'B')
+    a.cmd('iperf -s &')
+    a.cmd('tcpdump tcp -c 5 -w 1301204395.pcap &')
+    sleep(1)
+    b.cmdPrint('iperf -c 192.168.0.10 -t 5')
+    a.cmdPrint('tcpdump -r 1301204395.pcap')
 
 
 def main():
@@ -76,6 +85,7 @@ def main():
     net.start()
     # ping_local_subnet(net)
     enable_routing(net)
+    tcp_traffic(net)
     CLI(net)
     net.stop()
 
