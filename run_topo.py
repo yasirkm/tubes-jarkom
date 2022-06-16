@@ -12,6 +12,19 @@ from mininet.log import setLogLevel
 from topology import Tubes
 
 
+class Iperf_Server():
+    def __init__(self, net, server):
+        self.server = net[server]
+
+    def __enter__(self):
+        self.server.cmd('iperf -s &')
+        sleep(1)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.server.cmd('kill %iperf')
+
+
+
 def ping_local_subnet(net, count=4): # CLO 1
     '''
         Ping all subnet in tubes' topology locally
@@ -70,19 +83,20 @@ def enable_routing(net):    # CLO 2
 
     net.pingAll()
 
-def generate_tcp_traffic(net, time=5, capture=False):   # CLO 3
+def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
     a, b = net.get('A', 'B')
 
-    a.cmd('iperf -s &')
+    # a.cmd('iperf -s &')
     if capture:
-        a.cmd('tcpdump tcp -c 5 -w 1301204395.pcap &')
-    sleep(1)
+        a.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
+    # sleep(1)
 
     b.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
 
     if capture:
-        a.cmdPrint('tcpdump -r 1301204395.pcap')
-    a.cmd('kill %iperf')
+        a.cmdPrint(f'tcpdump -r {cap_file}')
+    # a.cmd('kill %iperf')
+    # sleep(20)
 
 def generate_buffer_traffic(net):   # CLO 4
     def change_buffer(router, size):
@@ -96,7 +110,7 @@ def generate_buffer_traffic(net):   # CLO 4
     for size in buffer_sizes:
         for router in routers:
             change_buffer(net[router], size)
-        generate_tcp_traffic(net, time=6)
+        generate_tcp_traffic(net, time=5, capture=True, cap_file=f'buffer_{size}.pcap')
 
 
 def main():
@@ -105,8 +119,9 @@ def main():
     net.start()
     # ping_local_subnet(net)
     enable_routing(net)
-    generate_tcp_traffic(net, capture=True)
-    generate_buffer_traffic(net)
+    with Iperf_Server(net, 'A'):
+        generate_tcp_traffic(net, capture=True)
+        generate_buffer_traffic(net)
     CLI(net)
     net.stop()
 
