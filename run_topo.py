@@ -52,52 +52,28 @@ def enable_routing(net):    # CLO 2
 
     r1.cmd('sysctl net.ipv4.ip_forward=1')
     r1.cmd('ip route add 0.0.0.0/0 via 192.168.255.2')
-    # r1.cmd('ip route add 192.168.1.0/24 via 192.168.255.6 dev R1-eth1')
-    # r1.cmd('ip route add 192.168.255.8/30 via 192.168.255.6 dev R1-eth1')
-    # r1.cmd('ip route add 192.168.255.12/30 via 192.168.255.6 dev R1-eth1')
-    # r1.cmd('ip route add 192.168.2.0/24 via 192.168.255.6 dev R1-eth1')
-    # r1.cmd('ip route add 192.168.3.0/24 via 192.168.255.6 dev R1-eth1')
 
     r2.cmd('sysctl net.ipv4.ip_forward=1')
     r2.cmd('ip route add 0.0.0.0/0 via 192.168.255.10')
     r2.cmd('ip route add 192.168.3.0/24 via 192.168.255.14')
-    # r2.cmd('ip route add 192.168.0.0/24 via 192.168.255.10 dev R2-eth1')
-    # r2.cmd('ip route add 192.168.255.0/30 via 192.168.255.10 dev R2-eth1')
-    # r2.cmd('ip route add 192.168.255.4/30 via 192.168.255.10 dev R2-eth1')
-    # r2.cmd('ip route add 192.168.2.0/24 via 192.168.255.10 dev R2-eth1')
-    # r2.cmd('ip route add 192.168.3.0/24 via 192.168.255.10 dev R2-eth1')
 
     r3.cmd('sysctl net.ipv4.ip_forward=1')
-    # r3.cmd('ip route add 0.0.0.0/0 via 192.168.255.1 dev R3-eth2')
     r3.cmd('ip route add 192.168.0.0/24 via 192.168.255.1')
     r3.cmd('ip route add 192.168.1.0/24 via 192.168.255.9')
     r3.cmd('ip route add 192.168.255.4/30 via 192.168.255.1')
     r3.cmd('ip route add 192.168.255.12/30 via 192.168.255.9')
     r3.cmd('ip route add 192.168.3.0/24 via 192.168.255.9')
 
-    # r3.cmd('ip route add 192.168.0.0/24 via 192.168.255.1 dev R3-eth2')
-    # r3.cmd('ip route add 192.168.1.0/24 via 192.168.255.1 dev R3-eth2')
-    # r3.cmd('ip route add 192.168.255.4/30 via 192.168.255.1 dev R3-eth2')
-    # r3.cmd('ip route add 192.168.255.12/30 via 192.168.255.1 dev R3-eth2')
-    # r3.cmd('ip route add 192.168.3.0/24 via 192.168.255.1 dev R3-eth2')
-
     r4.cmd('sysctl net.ipv4.ip_forward=1')
     r4.cmd('ip route add 0.0.0.0/0 via 192.168.255.13')
-    # r4.cmd('ip route add 192.168.0.0/24 via 192.168.255.13 dev R4-eth2')
-    # r4.cmd('ip route add 192.168.1.0/24 via 192.168.255.13 dev R4-eth2')
-    # r4.cmd('ip route add 192.168.255.0/30 via 192.168.255.13 dev R4-eth2')
-    # r4.cmd('ip route add 192.168.255.8/30 via 192.168.255.13 dev R4-eth2')
-    # r4.cmd('ip route add 192.168.2.0/24 via 192.168.255.13 dev R4-eth2')
 
     net.pingAll()
 
 def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
     a, b = net.get('A', 'B')
 
-    # a.cmd('iperf -s &')
     if capture:
         a.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
-    # sleep(1)
 
     b.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
     info('\n')
@@ -105,8 +81,6 @@ def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap')
     if capture:
         a.cmdPrint(f'tcpdump -r {cap_file}')
         info('\n')
-    # a.cmd('kill %iperf')
-    # sleep(20)
 
 def generate_buffer_traffic(net):   # CLO 4
     def change_buffer(router, size):
