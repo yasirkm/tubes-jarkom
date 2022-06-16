@@ -12,19 +12,19 @@ from mininet.log import setLogLevel
 from topology import Tubes
 
 
-def ping_local_subnet(net): # CLO 1
+def ping_local_subnet(net, count=4): # CLO 1
     '''
         Ping all subnet in tubes' topology locally
     '''
     a, b, r1, r2, r3, r4 = net.get('A', 'B', 'R1', 'R2', 'R3', 'R4')
-    a.cmdPrint('ping -c 4 192.168.0.1')     # A to R!
-    a.cmdPrint('ping -c 4 192.168.1.1')     # A to R2
-    b.cmdPrint('ping -c 4 192.168.2.1')     # B to R3
-    b.cmdPrint('ping -c 4 192.168.3.1')     # B to R4
-    r1.cmdPrint('ping -c 4 192.168.255.2')  # R1 to R3
-    r1.cmdPrint('ping -c 4 192.168.255.6')  # R1 to R4
-    r2.cmdPrint('ping -c 4 192.168.255.10') # R2 to R3
-    r2.cmdPrint('ping -c 4 192.168.255.14') # R2 to R4
+    a.cmdPrint(f'ping -c {count} 192.168.0.1')     # A to R!
+    a.cmdPrint(f'ping -c {count} 192.168.1.1')     # A to R2
+    b.cmdPrint(f'ping -c {count} 192.168.2.1')     # B to R3
+    b.cmdPrint(f'ping -c {count} 192.168.3.1')     # B to R4
+    r1.cmdPrint(f'ping -c {count} 192.168.255.2')  # R1 to R3
+    r1.cmdPrint(f'ping -c {count} 192.168.255.6')  # R1 to R4
+    r2.cmdPrint(f'ping -c {count} 192.168.255.10') # R2 to R3
+    r2.cmdPrint(f'ping -c {count} 192.168.255.14') # R2 to R4
 
 def enable_routing(net):    # CLO 2
     r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
@@ -70,13 +70,33 @@ def enable_routing(net):    # CLO 2
 
     net.pingAll()
 
-def tcp_traffic(net):   # CLO 3
+def generate_tcp_traffic(net, time=5, capture=False):   # CLO 3
     a, b = net.get('A', 'B')
+
     a.cmd('iperf -s &')
-    a.cmd('tcpdump tcp -c 5 -w 1301204395.pcap &')
+    if capture:
+        a.cmd('tcpdump tcp -c 5 -w 1301204395.pcap &')
     sleep(1)
-    b.cmdPrint('iperf -c 192.168.0.10 -t 5')
-    a.cmdPrint('tcpdump -r 1301204395.pcap')
+
+    b.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
+
+    if capture:
+        a.cmdPrint('tcpdump -r 1301204395.pcap')
+    a.cmd('kill %iperf')
+
+def generate_buffer_traffic(net):   # CLO 4
+    def change_buffer(router, size):
+        for intf in router.intfNames():
+            router.cmd(f'tc qdisc del dev {intf} root')
+            router.cmd(f'tc qdisc add dev {intf} root handle 1: pfifo limit {size}')
+
+    buffer_sizes = (20,40,60,100)
+    routers = ('R1', 'R2', 'R3', 'R4')
+    
+    for size in buffer_sizes:
+        for router in routers:
+            change_buffer(net[router], size)
+        generate_tcp_traffic(net, time=6)
 
 
 def main():
@@ -85,7 +105,8 @@ def main():
     net.start()
     # ping_local_subnet(net)
     enable_routing(net)
-    tcp_traffic(net)
+    generate_tcp_traffic(net, capture=True)
+    generate_buffer_traffic(net)
     CLI(net)
     net.stop()
 
