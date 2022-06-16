@@ -13,14 +13,20 @@ from topology import Tubes
 
 
 class Iperf_Server():
+    '''
+        Context manager for running iperf server
+    '''
     def __init__(self, net, server):
+        'Initiate server node'
         self.server = net[server]
 
     def __enter__(self):
+        'Run iperf server process on server node'
         self.server.cmd('iperf -s &')
         sleep(1)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        'Close iperf process'
         self.server.cmd('kill %iperf')
 
 
@@ -48,6 +54,10 @@ def ping_local_subnet(net, count=4): # CLO 1
     info('\n')
 
 def enable_routing(net):    # CLO 2
+    '''
+        Enable ipv4 routing on all routers
+        Uses tree topology
+    '''
     r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
 
     r1.cmd('sysctl net.ipv4.ip_forward=1')
@@ -70,6 +80,9 @@ def enable_routing(net):    # CLO 2
     net.pingAll()
 
 def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
+    '''
+        Generate tcp traffic using iperf
+    '''
     a, b = net.get('A', 'B')
 
     if capture:
@@ -83,7 +96,11 @@ def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap')
         info('\n')
 
 def generate_buffer_traffic(net):   # CLO 4
+    '''
+        Generate tcp traffic(s) for each buffer size
+    '''
     def change_buffer(router, size):
+        'Change the queue buffer size for every interface on the router'
         for intf in router.intfNames():
             router.cmd(f'tc qdisc del dev {intf} root')
             router.cmd(f'tc qdisc add dev {intf} root handle 1: pfifo limit {size}')
@@ -92,28 +109,35 @@ def generate_buffer_traffic(net):   # CLO 4
     routers = ('R1', 'R2', 'R3', 'R4')
     
     for size in buffer_sizes:
-        for router in routers:
+        for router in routers:  # Change the queue buffer size on all routers
             change_buffer(net[router], size)
         generate_tcp_traffic(net, time=5, capture=True, cap_file=f'buffer_{size}.pcap')
 
 
 def main():
     setLogLevel('info')
+
+    #   Initializing network
     net = Mininet(Tubes())
     net.start()
+
     info('CLO 1 : Pinging Local Subnet\n\n')
     ping_local_subnet(net)
     info('\n\n')
+
     info('CLO 2 : Enabling Routing\n\n')
     enable_routing(net)
     info('\n\n')
+
     with Iperf_Server(net, 'A'):
         info('CLO 3 : Generating TCP Traffic\n\n')
         generate_tcp_traffic(net, capture=True)
         info('\n\n')
+
         info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
         generate_buffer_traffic(net)
         info('\n\n')
+
     CLI(net)
     net.stop()
 
