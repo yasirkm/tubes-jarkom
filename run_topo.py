@@ -7,7 +7,7 @@ from time import sleep
 
 from mininet.net import Mininet
 from mininet.cli import CLI
-from mininet.log import setLogLevel
+from mininet.log import setLogLevel, info
 
 from topology import Tubes
 
@@ -31,13 +31,21 @@ def ping_local_subnet(net, count=4): # CLO 1
     '''
     a, b, r1, r2, r3, r4 = net.get('A', 'B', 'R1', 'R2', 'R3', 'R4')
     a.cmdPrint(f'ping -c {count} 192.168.0.1')     # A to R!
+    info('\n')
     a.cmdPrint(f'ping -c {count} 192.168.1.1')     # A to R2
+    info('\n')
     b.cmdPrint(f'ping -c {count} 192.168.2.1')     # B to R3
+    info('\n')
     b.cmdPrint(f'ping -c {count} 192.168.3.1')     # B to R4
+    info('\n')
     r1.cmdPrint(f'ping -c {count} 192.168.255.2')  # R1 to R3
+    info('\n')
     r1.cmdPrint(f'ping -c {count} 192.168.255.6')  # R1 to R4
+    info('\n')
     r2.cmdPrint(f'ping -c {count} 192.168.255.10') # R2 to R3
+    info('\n')
     r2.cmdPrint(f'ping -c {count} 192.168.255.14') # R2 to R4
+    info('\n')
 
 def enable_routing(net):    # CLO 2
     r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
@@ -92,9 +100,11 @@ def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap')
     # sleep(1)
 
     b.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
+    info('\n')
 
     if capture:
         a.cmdPrint(f'tcpdump -r {cap_file}')
+        info('\n')
     # a.cmd('kill %iperf')
     # sleep(20)
 
@@ -117,11 +127,19 @@ def main():
     setLogLevel('info')
     net = Mininet(Tubes())
     net.start()
-    # ping_local_subnet(net)
+    info('CLO 1 : Pinging Local Subnet\n\n')
+    ping_local_subnet(net)
+    info('\n\n')
+    info('CLO 2 : Enabling Routing\n\n')
     enable_routing(net)
+    info('\n\n')
     with Iperf_Server(net, 'A'):
+        info('CLO 3 : Generating TCP Traffic\n\n')
         generate_tcp_traffic(net, capture=True)
+        info('\n\n')
+        info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
         generate_buffer_traffic(net)
+        info('\n\n')
     CLI(net)
     net.stop()
 

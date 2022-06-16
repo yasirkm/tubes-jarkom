@@ -74,9 +74,9 @@ class Tubes(Topo):  # CLO1
             },
                 # Parameters for ('A','R2')
             {
-                # 'params1':{
-                #     'ip':'192.168.1.10/24'
-                # },
+                'params1':{
+                    'ip':'192.168.1.10/24'
+                },
                 # 'params2':{
                 #     'ip':'192.168.1.1/24'
                 # },
@@ -97,9 +97,9 @@ class Tubes(Topo):  # CLO1
             },
                 # Parameters for ('B','R4')
             {
-                # 'params1':{
-                #     'ip':'192.168.3.20/24'
-                # },
+                'params1':{
+                    'ip':'192.168.3.20/24'
+                },
                 # 'params2':{
                 #     'ip':'192.168.3.1/24'
                 # },
