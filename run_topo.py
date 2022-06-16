@@ -95,7 +95,7 @@ def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap')
         a.cmdPrint(f'tcpdump -r {cap_file}')
         info('\n')
 
-def generate_buffer_traffic(net):   # CLO 4
+def generate_buffer_traffic(net, time=5, capture=False, buffer_sizes=(20,40,60,100)):   # CLO 4
     '''
         Generate tcp traffic(s) for each buffer size
     '''
@@ -104,14 +104,12 @@ def generate_buffer_traffic(net):   # CLO 4
         for intf in router.intfNames():
             router.cmd(f'tc qdisc del dev {intf} root')
             router.cmd(f'tc qdisc add dev {intf} root handle 1: pfifo limit {size}')
-
-    buffer_sizes = (20,40,60,100)
     routers = ('R1', 'R2', 'R3', 'R4')
     
     for size in buffer_sizes:
         for router in routers:  # Change the queue buffer size on all routers
             change_buffer(net[router], size)
-        generate_tcp_traffic(net, time=5, capture=True, cap_file=f'buffer_{size}.pcap')
+        generate_tcp_traffic(net, time=time, capture=capture, cap_file=f'buffer_{size}.pcap')
 
 
 def main():
@@ -135,7 +133,7 @@ def main():
         info('\n\n')
 
         info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
-        generate_buffer_traffic(net)
+        generate_buffer_traffic(net, capture=True, buffer_sizes=(20,40,60,100))
         info('\n\n')
 
     CLI(net)
