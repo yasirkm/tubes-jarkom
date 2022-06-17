@@ -141,7 +141,7 @@ def main():
         info('\n\n')
 
         info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
-        generate_buffer_traffic(net, capture=True, buffer_sizes=(20,40,60,100))
+        generate_buffer_traffic(net, capture=True)
         info('\n\n')
 
     CLI(net)
