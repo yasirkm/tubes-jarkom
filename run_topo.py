@@ -84,23 +84,27 @@ def enable_routing(net):    # CLO 2
     r4.cmdPrint('traceroute 192.168.0.10') # Trace route from R4 to hostA
     info('\n')
 
-def generate_tcp_traffic(net, server='A', client='B', time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
+def generate_tcp_traffic(net, server='A', client='B', time=5, save_cap=False, cap_file='1301204395.pcap'):   # CLO 3
     '''
         Generate tcp traffic using iperf
     '''
     server, client = net.get(server, client)
 
-    if capture:
+    if save_cap:
         server.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
+    else:
+        server.cmd(f'tcpdump tcp -c 20 &')
 
-    client.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
+    client.cmdPrint(f'iperf -c {server.IP()} -t {time} -i 1')
     info('\n')
 
-    if capture:
+    if save_cap:
         server.cmdPrint(f'tcpdump -r {cap_file}')
-        info('\n')
+    else:
+        server.cmdPrint('fg %tcpdump')
+    info('\n')
 
-def generate_buffer_traffic(net, server='A', client='B', time=5, capture=False, buffer_sizes=(20,40,60,100)):   # CLO 4
+def generate_buffer_traffic(net, server='A', client='B', time=5, save_cap=False, buffer_sizes=(20,40,60,100)):   # CLO 4
     '''
         Generate tcp traffic(s) for each buffer size
     '''
@@ -116,7 +120,7 @@ def generate_buffer_traffic(net, server='A', client='B', time=5, capture=False, 
             change_buffer(net[router], size)
         net['R1'].cmdPrint('tc qdisc')
         info('\n')
-        generate_tcp_traffic(net, server=server, client=client, time=time, capture=capture, cap_file=f'buffer_{size}.pcap')
+        generate_tcp_traffic(net, server=server, client=client, time=time, save_cap=save_cap, cap_file=f'buffer_{size}.pcap')
 
 
 def main():
@@ -137,11 +141,11 @@ def main():
 
     with Iperf_Server(net, 'A'):
         info('CLO 3 : Generating TCP Traffic\n\n')
-        generate_tcp_traffic(net, capture=True)
+        generate_tcp_traffic(net, save_cap=True)
         info('\n\n')
 
         info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
-        generate_buffer_traffic(net, capture=True)
+        generate_buffer_traffic(net, save_cap=True)
         info('\n\n')
 
     CLI(net)
