@@ -84,25 +84,26 @@ def enable_routing(net):    # CLO 2
     r4.cmdPrint('traceroute 192.168.0.10') # Trace route from R4 to hostA
     info('\n')
 
-def generate_tcp_traffic(net, server='A', client='B', time=5, save_cap=False, cap_file='1301204395.pcap'):   # CLO 3
+def generate_tcp_traffic(net, server='A', client='B', time=10, cap_num=300,save_cap=False, cap_file='1301204395.pcap'):   # CLO 3
     '''
         Generate tcp traffic using iperf
     '''
     server, client = net.get(server, client)
+    read_count=20
 
     if save_cap:
-        server.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
+        server.sendCmd(f'tcpdump tcp -c {cap_num} -w {cap_file}')
     else:
-        server.cmd(f'tcpdump tcp -c 20 &')
+        server.sendCmd(f'tcpdump tcp -c {read_count}')
 
     client.cmdPrint(f'iperf -c {server.IP()} -t {time} -i 1')
     info('\n')
 
     if save_cap:
-        server.cmd('kill %tcpdump')
-        server.cmdPrint(f'tcpdump -r {cap_file}')
+        server.waitOutput()
+        server.cmdPrint(f'tcpdump -c {read_count} -r {cap_file}')
     else:
-        server.cmdPrint('fg %tcpdump')
+        info(server.waitOutput())
     info('\n')
 
 def generate_buffer_traffic(net, server='A', client='B', time=5, save_cap=False, buffer_sizes=(20,40,60,100)):   # CLO 4
