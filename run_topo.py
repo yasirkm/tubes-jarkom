@@ -99,6 +99,7 @@ def generate_tcp_traffic(net, server='A', client='B', time=5, save_cap=False, ca
     info('\n')
 
     if save_cap:
+        server.cmd('kill %tcpdump')
         server.cmdPrint(f'tcpdump -r {cap_file}')
     else:
         server.cmdPrint('fg %tcpdump')
@@ -118,6 +119,7 @@ def generate_buffer_traffic(net, server='A', client='B', time=5, save_cap=False,
     for size in buffer_sizes:
         for router in routers:  # Change the queue buffer size on all routers
             change_buffer(net[router], size)
+        info(f'\nTraffic for queue buffer {size} packets\n\n')
         net['R1'].cmdPrint('tc qdisc')
         info('\n')
         generate_tcp_traffic(net, server=server, client=client, time=time, save_cap=save_cap, cap_file=f'buffer_{size}.pcap')
@@ -131,10 +133,10 @@ def main():
     net.start()
     server='A'
 
-    info('\n\n')
-    info('CLO 1 : Pinging Local Subnet\n\n')
-    ping_local_subnet(net)
-    info('\n\n')
+    # info('\n\n')
+    # info('CLO 1 : Pinging Local Subnet\n\n')
+    # ping_local_subnet(net)
+    # info('\n\n')
 
     info('CLO 2 : Enabling Routing\n\n')
     enable_routing(net)
