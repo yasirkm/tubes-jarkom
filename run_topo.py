@@ -129,6 +129,7 @@ def main():
     #   Initializing network
     net = Mininet(Tubes())
     net.start()
+    server='A'
 
     info('\n\n')
     info('CLO 1 : Pinging Local Subnet\n\n')
@@ -139,13 +140,13 @@ def main():
     enable_routing(net)
     info('\n\n')
 
-    with Iperf_Server(net, 'A'):
+    with Iperf_Server(net, server):
         info('CLO 3 : Generating TCP Traffic\n\n')
-        generate_tcp_traffic(net, save_cap=True)
+        generate_tcp_traffic(net, server=server, save_cap=True)
         info('\n\n')
 
         info('CLO 4 : Generatic TCP Traffic with Modified Queue Buffer\n\n')
-        generate_buffer_traffic(net, save_cap=True)
+        generate_buffer_traffic(net, server=server, save_cap=True)
         info('\n\n')
 
     CLI(net)
