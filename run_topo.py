@@ -134,10 +134,10 @@ def main():
     net.start()
     server='A'
 
-    # info('\n\n')
-    # info('CLO 1 : Pinging Local Subnet\n\n')
-    # ping_local_subnet(net)
-    # info('\n\n')
+    info('\n\n')
+    info('CLO 1 : Pinging Local Subnet\n\n')
+    ping_local_subnet(net)
+    info('\n\n')
 
     info('CLO 2 : Enabling Routing\n\n')
     enable_routing(net)
