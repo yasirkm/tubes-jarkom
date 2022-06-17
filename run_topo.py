@@ -35,7 +35,7 @@ def ping_local_subnet(net, count=4): # CLO 1
     '''
         Ping all subnet in tubes' topology locally
     '''
-    a, b, r1, r2, r3, r4 = net.get('A', 'B', 'R1', 'R2', 'R3', 'R4')
+    a, b, r1, r2 = net.get('A', 'B', 'R1', 'R2')
     a.cmdPrint(f'ping -c {count} 192.168.0.1')     # A to R!
     info('\n')
     a.cmdPrint(f'ping -c {count} 192.168.1.1')     # A to R2
@@ -58,7 +58,7 @@ def enable_routing(net):    # CLO 2
         Enable ipv4 routing on all routers
         Uses tree topology
     '''
-    r1, r2, r3, r4 = net.get('R1', 'R2', 'R3', 'R4')
+    a, r1, r2, r3, r4 = net.get('A', 'R1', 'R2', 'R3', 'R4')
 
     r1.cmd('sysctl net.ipv4.ip_forward=1')
     r1.cmd('ip route add 0.0.0.0/0 via 192.168.255.2')
@@ -78,24 +78,29 @@ def enable_routing(net):    # CLO 2
     r4.cmd('ip route add 0.0.0.0/0 via 192.168.255.13')
 
     net.pingAll()
+    info('\n')
+    a.cmdPrint('traceroute 192.168.2.20')  # Trace route from hostA to hostB
+    info('\n')
+    r4.cmdPrint('traceroute 192.168.0.10') # Trace route from R4 to hostA
+    info('\n')
 
-def generate_tcp_traffic(net, time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
+def generate_tcp_traffic(net, server='A', client='B', time=5, capture=False, cap_file='1301204395.pcap'):   # CLO 3
     '''
         Generate tcp traffic using iperf
     '''
-    a, b = net.get('A', 'B')
+    server, client = net.get(server, client)
 
     if capture:
-        a.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
+        server.cmd(f'tcpdump tcp -c 20 -w {cap_file} &')
 
-    b.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
+    client.cmdPrint(f'iperf -c 192.168.0.10 -t {time} -i 1')
     info('\n')
 
     if capture:
-        a.cmdPrint(f'tcpdump -r {cap_file}')
+        server.cmdPrint(f'tcpdump -r {cap_file}')
         info('\n')
 
-def generate_buffer_traffic(net, time=5, capture=False, buffer_sizes=(20,40,60,100)):   # CLO 4
+def generate_buffer_traffic(net, server='A', client='B', time=5, capture=False, buffer_sizes=(20,40,60,100)):   # CLO 4
     '''
         Generate tcp traffic(s) for each buffer size
     '''
@@ -109,7 +114,9 @@ def generate_buffer_traffic(net, time=5, capture=False, buffer_sizes=(20,40,60,1
     for size in buffer_sizes:
         for router in routers:  # Change the queue buffer size on all routers
             change_buffer(net[router], size)
-        generate_tcp_traffic(net, time=time, capture=capture, cap_file=f'buffer_{size}.pcap')
+        net['R1'].cmdPrint('tc qdisc')
+        info('\n')
+        generate_tcp_traffic(net, server=server, client=client, time=time, capture=capture, cap_file=f'buffer_{size}.pcap')
 
 
 def main():
@@ -119,6 +126,7 @@ def main():
     net = Mininet(Tubes())
     net.start()
 
+    info('\n\n')
     info('CLO 1 : Pinging Local Subnet\n\n')
     ping_local_subnet(net)
     info('\n\n')
